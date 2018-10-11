@@ -11,19 +11,19 @@ from scipy.misc import imread
 import itertools
 
 if sys.version[0]=='3':
-   from tkinter import Tk, Toplevel 
+   from tkinter import Tk, Toplevel
    from tkinter.filedialog import askopenfilename, askdirectory
    import tkinter
    import tkinter as tk
-   from tkinter.messagebox import *   
+   from tkinter.messagebox import *
    from tkinter.filedialog import *
 else:
    from Tkinter import Tk, TopLevel
    from tkFileDialog import askopenfilename, askdirectory
    import Tkinter as tkinter
    import Tkinter as tk
-   from Tkinter.messagebox import *   
-   from Tkinter.filedialog import *   
+   from Tkinter.messagebox import *
+   from Tkinter.filedialog import *
 
 #numerical
 import tensorflow as tf
@@ -36,7 +36,7 @@ import matplotlib.pyplot as plt
 
 #supress tf warnings
 os.environ['TF_CPP_MIN_LOG_LEVEL'] = '3'
-
+os.environ['CUDA_VISIBLE_DEVICES'] = '-1'
 import warnings
 warnings.filterwarnings("ignore")
 
@@ -60,7 +60,7 @@ def plot_confusion_matrix2(cm, classes, normalize=False, cmap=plt.cm.Blues, dola
     thresh = cm.max() / 2.
     if dolabels==True:
        tick_marks = np.arange(len(classes))
-       plt.xticks(tick_marks, classes, fontsize=3, rotation=45) # 
+       plt.xticks(tick_marks, classes, fontsize=3, rotation=45) #
        plt.yticks(tick_marks, classes, fontsize=3)
 
        plt.ylabel('True label',fontsize=6)
@@ -94,11 +94,11 @@ def load_graph(model_file):
 
 # =========================================================
 def getCP(tmp, graph):
-  
+
    #graph = load_graph(classifier_file)
 
-   input_name = "import/Placeholder" #input" 
-   output_name = "import/final_result" 
+   input_name = "import/Placeholder" #input"
+   output_name = "import/final_result"
 
    input_operation = graph.get_operation_by_name(input_name);
    output_operation = graph.get_operation_by_name(output_name);
@@ -151,7 +151,7 @@ def eval_tiles(label, direc, numero, classifier_file, x, n):
       w1.append(getCP(Z[i], graph))
 
    try:
-      C, P, _ = zip(*w1) 
+      C, P, _ = zip(*w1)
    except:
       C = np.nan
       P = np.nan
@@ -159,12 +159,12 @@ def eval_tiles(label, direc, numero, classifier_file, x, n):
 
    C = np.asarray(C)
    P = np.asarray(P)
-   
+
    ind = np.where(~np.isnan(C))[0]
    C = C[ind]; P = P[ind]
    ind = np.where(~np.isnan(P))[0]
    C = C[ind]; P = P[ind]
-   
+
    e = precision_recall_fscore_support(np.ones(len(C))*x, C)
 
    cm = np.zeros((n,n))
@@ -180,7 +180,7 @@ def eval_tiles(label, direc, numero, classifier_file, x, n):
    #print(label+' accuracy %f' % (a))
    #print('f score %f' % (f) )
    #print('mean prob. %f' % (np.mean(P)) )
-   return [a,f, np.mean(P)], cm  #p, r C, P, 
+   return [a,f, np.mean(P)], cm  #p, r C, P,
 
 
 #==============================================================
@@ -209,24 +209,24 @@ if __name__ == '__main__':
 
    #===============================================
    # Run main application
-   Tk().withdraw() # we don't want a full GUI, so keep the root window from appearing   
-   
+   Tk().withdraw() # we don't want a full GUI, so keep the root window from appearing
+
    direc = askdirectory()
-   labels_path = askopenfilename(filetypes=[("pick a labels file","*.txt")], multiple=False)  
-   classifier_file = askopenfilename(filetypes=[("pick a pb classifier file","*.pb")], multiple=False)  
-   
+   labels_path = askopenfilename(filetypes=[("pick a labels file","*.txt")], multiple=False)
+   classifier_file = askopenfilename(filetypes=[("pick a pb classifier file","*.pb")], multiple=False)
+
    #=============================================
 
    ## Loads label file, strips off carriage return
    with open(labels_path) as f: #'labels.txt') as f:
       labels = f.readlines()
-   labels = [x.strip() for x in labels] 
+   labels = [x.strip() for x in labels]
 
    code= {}
    for label in labels:
       code[label] = [i for i, x in enumerate([x.startswith(label) for x in labels]) if x].pop()
 
-   w = Parallel(n_jobs=-1, verbose=0)(delayed(eval_tiles)(label, direc, numero, classifier_file, code[label], len(labels)) for label in labels) 
+   w = Parallel(n_jobs=-1, verbose=0)(delayed(eval_tiles)(label, direc, numero, classifier_file, code[label], len(labels)) for label in labels)
    E, CM = zip(*w)
 
    #E = []; CM = []
@@ -243,12 +243,10 @@ if __name__ == '__main__':
    plt.savefig(direc+os.sep+'test_cm.png', dpi=300, bbox_inches='tight')
    del fig; plt.close()
 
-   a=np.asarray(E)[:,0] 
-   f= np.asarray(E)[:,1] 
-   pr= np.asarray(E)[:,2] 
+   a=np.asarray(E)[:,0]
+   f= np.asarray(E)[:,1]
+   pr= np.asarray(E)[:,2]
 
    print('mean accuracy %f (N=%i)' % (np.mean(a), numero) )
    print('mean f-score %f (N=%i)' % (np.mean(f), numero) )
    print('mean prob. %f (N=%i)' % (np.mean(pr), numero) )
-
-
