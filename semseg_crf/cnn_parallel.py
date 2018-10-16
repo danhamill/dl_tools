@@ -221,6 +221,11 @@ def get_semseg(img, tile, decim, classifier_file,chan_dat_file, prob_thres, prob
     #PP = np.asarray(PP)
 
    C = C+1 #add 1 so all labels are >=1
+   
+   allones = (Z == np.array(np.ones(Z[i].shape))).all(axis=(1,2))
+   idx = np.where(allones)[0][0]
+   
+   
        #PP = np.squeeze(PP)
 
        ## create images with classes and probabilities
@@ -378,7 +383,12 @@ def eval_img(imfile, tile, fct, prob, prob_thres, decim, classifier_file,chan_da
 if __name__ == '__main__':
    script, imdirec, out_dir, classifier_file, class_file, colors_path, chan_dat_file, tile, prob_thres, prob, decim, fct = sys.argv
 
-   #imdirec, classifier_file, class_file, colors_path, chan_dat_file, tile, prob_thres, prob, decim, fct='/media/dhamill/My Passport/PendOriellePhotos/RileyCreek/data', '/media/dhamill/My Passport/PendOriellePhotos/ice_class2/rlc_v2.pb', '/media/dhamill/My Passport/PendOriellePhotos/ice_class2/output_labels.txt' ,'/media/dhamill/My Passport/PendOriellePhotos/ice_class2/output_colors.txt','/media/dhamill/My Passport/PendOriellePhotos/ice_class2/mres_chanubuntu.mat' ,96, 0.5, 0.5, 1, 0.25
+   imdirec, classifier_file, class_file, colors_path, chan_dat_file, tile, prob_thres, prob, decim, fct=r'C:\workspace\git_clones\dl_tools\data\test', \
+                                                                                                        r"C:\workspace\git_clones\dl_tools\RileyCreek_96_1000_001.pb", \
+                                                                                                        r"C:\workspace\git_clones\dl_tools\labels.txt" ,\
+                                                                                                        r"C:\workspace\git_clones\dl_tools\label_colors.txt",\
+                                                                                                        r"C:\workspace\git_clones\dl_tools\mres_chanubuntu.mat" ,\
+                                                                                                        96, 0.5, 0.5, 1, 0.25
 
 
 
