@@ -8,6 +8,7 @@ from glob import glob
 from imageio import imread
 
 os.environ['TF_CPP_MIN_LOG_LEVEL'] = '3'
+os.environ['CUDA_VISIBLE_DEVICES'] = '-1'
 #numerical
 import tensorflow as tf
 import numpy as np
@@ -121,8 +122,8 @@ def load_graph(model_file):
 
 # =========================================================
 def getCP(tmp,graph):
-
-   #graph = load_graph(classifier_file)
+   if type(graph) is str:
+      graph = load_graph(classifier_file)
 
    input_name = "import/Placeholder" #input"
    output_name = "import/final_result"
@@ -206,8 +207,12 @@ def get_semseg(img, tile, decim, classifier_file,chan_dat_file, prob_thres, prob
       Z = Z[::decim]
 
    #from joblib import Parallel, delayed
-   #w1= Parallel(n_jobs=-1, verbose=0)(delayed(getCP)(Z[i],classifier_file) for i in range(len(Z)))
-
+   start = time.time()
+   w1= Parallel(n_jobs=-1, verbose=0)(delayed(getCP)(Z[i],classifier_file) for i in range(len(Z)))#,pre_dispatch='2 * n_jobs'
+   elapsed = time.time() - start
+   print("processing took: " + str(elapsed/60) + ' minutes')
+   
+   
    for i in range(len(Z)):
       w1.append(getCP(Z[i], graph))
 
@@ -269,7 +274,7 @@ def get_semseg(img, tile, decim, classifier_file,chan_dat_file, prob_thres, prob
       row_count +=1
 
 #
-# plt.imshow(Lc);plt.colorbar()
+# plt.imshow(Lc[:,:,0]);plt.colorbar()
 # plt.imshow(Lc1);plt.colorbar()
 # plt.imshow(Lc2);plt.colorbar()
 # plt.imshow(Lc3);plt.colorbar()
@@ -314,11 +319,16 @@ def get_semseg(img, tile, decim, classifier_file,chan_dat_file, prob_thres, prob
    Lcorig[Lp_f < prob_thres] = np.nan
    #plt.imshow(Lcorig);plt.colorbar()
 
+   '''
+   TODO: Add sliding window and to determine more satitstical properties of ice classifications
+   
+   '''
+
    chan_dat = loadmat(chan_dat_file)['chan_mask']
    #plt.imshow(chan_dat);plt.colorbar()
    LcChan = Lcorig.copy()
    LcChan[chan_dat ==0 ] = np.nan
-   #plt.imshow(img);plt.imshow(LcChan, alpha=0.5);plt.colorbar()
+   #plt.imshow(img);plt.imshow(Lcorig, alpha=0.5);plt.colorbar();plt.show()
 
 
    #np.shape(imgr)
@@ -368,7 +378,7 @@ def eval_img(imfile, tile, fct, prob, prob_thres, decim, classifier_file,chan_da
    prob = np.float(prob)
    prob_thres = np.float(prob_thres)
    decim = np.int(decim)
-   #imfile = images[0]
+   imfile = images[0]
    #print('Image file: '+imfile)
    #try:
    img = imread(imfile)
@@ -381,10 +391,11 @@ def eval_img(imfile, tile, fct, prob, prob_thres, decim, classifier_file,chan_da
    return None
 #==============================================================
 if __name__ == '__main__':
-   script, imdirec, out_dir, classifier_file, class_file, colors_path, chan_dat_file, tile, prob_thres, prob, decim, fct = sys.argv
+   #script, imdirec, out_dir, classifier_file, class_file, colors_path, chan_dat_file, tile, prob_thres, prob, decim, fct = sys.argv
 
-   imdirec, classifier_file, class_file, colors_path, chan_dat_file, tile, prob_thres, prob, decim, fct=r'C:\workspace\git_clones\dl_tools\data\test', \
+   imdirec, classifier_file, out_dir, class_file, colors_path, chan_dat_file, tile, prob_thres, prob, decim, fct=r'C:\workspace\git_clones\dl_tools\data\test', \
                                                                                                         r"C:\workspace\git_clones\dl_tools\RileyCreek_96_1000_001.pb", \
+                                                                                                        r"C:\workspace\git_clones\dl_tools\tmp", \
                                                                                                         r"C:\workspace\git_clones\dl_tools\labels.txt" ,\
                                                                                                         r"C:\workspace\git_clones\dl_tools\label_colors.txt",\
                                                                                                         r"C:\workspace\git_clones\dl_tools\mres_chanubuntu.mat" ,\
@@ -433,6 +444,8 @@ if __name__ == '__main__':
    from joblib import cpu_count
    cpus=cpu_count()
    print("[i] cpu_count", str(cpus))
+   
+
    w = Parallel(n_jobs=cpus-1, verbose=0)(delayed (eval_img)(imfile, tile, fct, prob, prob_thres, decim, classifier_file,chan_dat_file,out_dir,cmap1) for imfile in images[653:])
    print("[i] Finished the parallel loop")
    if os.name=='posix': # true if linux/mac
