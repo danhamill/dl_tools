@@ -195,33 +195,33 @@ def get_img(image_path, fct):
 #==============================================================
 if __name__ == '__main__':
 
-   argv = sys.argv[1:]
-   try:
-      opts, args = getopt.getopt(argv,"h:w:s:")
-   except getopt.GetoptError:
-      print('python int_seg_crf.py -w windowsize -s size')
-      sys.exit(2)
-
-   for opt, arg in opts:
-      if opt == '-h':
-         print('Example usage: python int_seg_crf.py -w 400 -s 0.125')
-         sys.exit()
-      elif opt in ("-w"):
-         win = arg
-      elif opt in ("-s"):
-         fct = arg
-		 
-   #===============================================
-   # Run main application
-   Tk().withdraw() # we don't want a full GUI, so keep the root window from appearing   
-   image_path = askopenfilename(filetypes=[("pick an image file","*.JPG *.jpg *.jpeg *.JPEG *.png *.PNG *.tif *.tiff *.TIF *.TIFF")], multiple=False)  
+#   argv = sys.argv[1:]
+#   try:
+#      opts, args = getopt.getopt(argv,"h:w:s:")
+#   except getopt.GetoptError:
+#      print('python int_seg_crf.py -w windowsize -s size')
+#      sys.exit(2)
+#
+#   for opt, arg in opts:
+#      if opt == '-h':
+#         print('Example usage: python int_seg_crf.py -w 400 -s 0.125')
+#         sys.exit()
+#      elif opt in ("-w"):
+#         win = arg
+#      elif opt in ("-s"):
+#         fct = arg
+#		 
+#   #===============================================
+#   # Run main application
+#   Tk().withdraw() # we don't want a full GUI, so keep the root window from appearing   
+#   image_path = askopenfilename(filetypes=[("pick an image file","*.JPG *.jpg *.jpeg *.JPEG *.png *.PNG *.tif *.tiff *.TIF *.TIFF")], multiple=False)  
+#   
+#   labels_path = askopenfilename(filetypes=[("pick a labels file","*.txt")], multiple=False)  
+#   colors_path = askopenfilename(filetypes=[("pick a label colors file","*.txt")], multiple=False)  
    
-   labels_path = askopenfilename(filetypes=[("pick a labels file","*.txt")], multiple=False)  
-   colors_path = askopenfilename(filetypes=[("pick a label colors file","*.txt")], multiple=False)  
-   
-#   image_path = r"C:\workspace\git_clones\dl_tools\data\test\rlc11412021250.jpg"
-#   labels_path=r"C:\workspace\git_clones\dl_tools\labels.txt"
-#   colors_path=r"C:\workspace\git_clones\dl_tools\label_colors.txt"
+   image_path = r"C:\workspace\git_clones\dl_tools\data\test\rlc11412021250.jpg"
+   labels_path=r"C:\workspace\git_clones\dl_tools\labels.txt"
+   colors_path=r"C:\workspace\git_clones\dl_tools\label_colors.txt"
    #hostname = socket.gethostname()
 
    name, ext = os.path.splitext(image_path)
@@ -233,11 +233,11 @@ if __name__ == '__main__':
    else: # windows
       start = time.clock()
       
-   win = int(win) ##1000
-   fct = float(fct) ##1000
+#   win = int(win) ##1000
+#   fct = float(fct) ##1000
    
-#   win = int(512)
-#   fct= float(1)
+   win = int(512)
+   fct= float(1)
    lw = 5 #initial brush thickness
    print("initial brush width = "+str(lw))
    print("change using the +/- keys")
@@ -369,7 +369,7 @@ if __name__ == '__main__':
    resr = median(resr, disk(5))
    Lcorig = Lcr.copy().astype('float')
    
-   
+
    #===============================================================
    #Update Lcorig and resr for proper plotting
    #Need to adjust the classificaitons such that they are sequentually ordered
@@ -417,7 +417,7 @@ if __name__ == '__main__':
 
    _ = ax1.imshow(rgb_img)
    #plt.title('b) Unary potentials', loc='left', fontsize=6)
-   im2 = ax1.imshow(Lcorig-1, cmap=cmap, alpha=0.5, vmin=0, vmax=len(cmap1))
+   im2 = ax1.imshow(Lcorig-1, cmap=cmap, alpha=0.5,vmin=0, vmax=len(labels))# 
    divider = make_axes_locatable(ax1)
    cax = divider.append_axes("right", size="5%")
    cb=plt.colorbar(im2, cax=cax)
@@ -432,7 +432,7 @@ if __name__ == '__main__':
 
    _ = ax1.imshow(rgb_img)
    #plt.title('c) CRF prediction', loc='left', fontsize=6)
-   im2 = ax1.imshow(resr, cmap=cmap, alpha=0.5, vmin=0, vmax=len(labels))
+   im2 = ax1.imshow(resr, cmap=cmap, alpha=0.5,vmin=0, vmax=len(labels) )#vmin=0, vmax=len(labels)
    divider = make_axes_locatable(ax1)
    cax = divider.append_axes("right", size="5%")
    cb=plt.colorbar(im2, cax=cax)
