@@ -168,7 +168,16 @@ def norm_im(img): ##, testimage):
    sess = tf.Session()
    return np.squeeze(sess.run(normalized))
 
+def get_win_pixel_coords(grid_pos, win_shape, shift_size=None):
+    if shift_size is None:
+        shift_size = win_shape
+    gr, gc = grid_pos
+    sr, sc = shift_size
+    wr, wc = win_shape
+    top, bottom = gr * sr, (gr * sr) + wr
+    left, right = gc * sc, (gc * sc) + wc
 
+    return top, bottom, left, right
 
 #=======================
 def get_semseg(img, tile, decim, classifier_file,chan_dat_file, prob_thres, prob, cmap1, name, out_dir):
@@ -227,13 +236,11 @@ def get_semseg(img, tile, decim, classifier_file,chan_dat_file, prob_thres, prob
 
    C = C+1 #add 1 so all labels are >=1
    
-   allones = (Z == np.array(np.ones(Z[i].shape))).all(axis=(1,2))
-   idx = np.where(allones)[0][0]
+   allones = np.where(C==1)
    
-   
-       #PP = np.squeeze(PP)
 
-       ## create images with classes and probabilities
+   #PP = np.squeeze(PP)
+   ## create images with classes and probabilities
    Lc = np.zeros((nx, ny,2))
    Lc1 = np.zeros((nx, ny,2))
    Lc2 = np.zeros((nx, ny,2))
@@ -247,41 +254,31 @@ def get_semseg(img, tile, decim, classifier_file,chan_dat_file, prob_thres, prob
    mn = np.int(tile-(tile*winprop)) #tile/2 - tile/4)
    mx = np.int(tile+(tile*winprop)) #tile/2 + tile/4)
    row_count=0
-   for row_count in range(15):
+   for row_count in range(ind[0]):
       if row_count %2 == 0:
-         for k in range(len(Zx))[row_count*21:(row_count+1)*21][::2]:
+         for k in range(len(Zx))[row_count*ind[1]:(row_count+1)*ind[1]][::2]:
             Lc[Zx[k][mn:mx,mn:mx], Zy[k][mn:mx,mn:mx],0] = Lc[Zx[k][mn:mx,mn:mx], Zy[k][mn:mx,mn:mx],0]+C[k]
             Lp[Zx[k][mn:mx,mn:mx], Zy[k][mn:mx,mn:mx],0] = Lp[Zx[k][mn:mx,mn:mx], Zy[k][mn:mx,mn:mx],0]+P[k]
             Lc[Zx[k][mn:mx,mn:mx], Zy[k][mn:mx,mn:mx],1] = Lc[Zx[k][mn:mx,mn:mx], Zy[k][mn:mx,mn:mx],1]+k
             Lp[Zx[k][mn:mx,mn:mx], Zy[k][mn:mx,mn:mx],1] = Lp[Zx[k][mn:mx,mn:mx], Zy[k][mn:mx,mn:mx],1]+k
-         for k in range(len(Zx))[row_count*21:(row_count+1)*21-1][::2]:
+         for k in range(len(Zx))[row_count*ind[1]:(row_count+1)*ind[1]-1][::2]:
             Lc1[Zx[k][mn:mx,mn:mx], Zy[k][mn:mx,mn:mx],0] = Lc1[Zx[k][mn:mx,mn:mx], Zy[k][mn:mx,mn:mx],0]+C[k]
             Lp1[Zx[k][mn:mx,mn:mx], Zy[k][mn:mx,mn:mx],0] = Lp1[Zx[k][mn:mx,mn:mx], Zy[k][mn:mx,mn:mx],0]+P[k]
             Lc1[Zx[k][mn:mx,mn:mx], Zy[k][mn:mx,mn:mx],1] = Lc1[Zx[k][mn:mx,mn:mx], Zy[k][mn:mx,mn:mx],1]+k
             Lp1[Zx[k][mn:mx,mn:mx], Zy[k][mn:mx,mn:mx],1] = Lp1[Zx[k][mn:mx,mn:mx], Zy[k][mn:mx,mn:mx],1]+k
       else:
-         for k in range(len(Zx))[row_count*21:(row_count+1)*21][::2]:
+         for k in range(len(Zx))[row_count*ind[1]:(row_count+1)*ind[1]][::2]:
             Lc2[Zx[k][mn:mx,mn:mx], Zy[k][mn:mx,mn:mx],0] = Lc2[Zx[k][mn:mx,mn:mx], Zy[k][mn:mx,mn:mx],0]+C[k]
             Lp2[Zx[k][mn:mx,mn:mx], Zy[k][mn:mx,mn:mx],0] = Lp2[Zx[k][mn:mx,mn:mx], Zy[k][mn:mx,mn:mx],0]+P[k]
             Lc2[Zx[k][mn:mx,mn:mx], Zy[k][mn:mx,mn:mx],1] = Lc2[Zx[k][mn:mx,mn:mx], Zy[k][mn:mx,mn:mx],1]+k
             Lp2[Zx[k][mn:mx,mn:mx], Zy[k][mn:mx,mn:mx],1] = Lp2[Zx[k][mn:mx,mn:mx], Zy[k][mn:mx,mn:mx],1]+k
-         for k in range(len(Zx))[row_count*21:(row_count+1)*21-1][::2]:
+         for k in range(len(Zx))[row_count*ind[1]:(row_count+1)*ind[1]-1][::2]:
 
             Lc3[Zx[k][mn:mx,mn:mx], Zy[k][mn:mx,mn:mx],0] = Lc3[Zx[k][mn:mx,mn:mx], Zy[k][mn:mx,mn:mx],0]+C[k]
             Lp3[Zx[k][mn:mx,mn:mx], Zy[k][mn:mx,mn:mx],0] = Lp3[Zx[k][mn:mx,mn:mx], Zy[k][mn:mx,mn:mx],0]+P[k]
             Lc3[Zx[k][mn:mx,mn:mx], Zy[k][mn:mx,mn:mx],1] = Lc3[Zx[k][mn:mx,mn:mx], Zy[k][mn:mx,mn:mx],1]+k
             Lp3[Zx[k][mn:mx,mn:mx], Zy[k][mn:mx,mn:mx],1] = Lp3[Zx[k][mn:mx,mn:mx], Zy[k][mn:mx,mn:mx],1]+k
       row_count +=1
-
-#
-# plt.imshow(Lc[:,:,0]);plt.colorbar()
-# plt.imshow(Lc1);plt.colorbar()
-# plt.imshow(Lc2);plt.colorbar()
-# plt.imshow(Lc3);plt.colorbar()
-# plt.imshow(Lp);plt.colorbar()
-# plt.imshow(Lp1);plt.colorbar()
-# plt.imshow(Lp2);plt.colorbar()
-# plt.imshow(Lp3);plt.colorbar()
 
    Lp = Lp[:nxo, :nyo,:2]
    Lc = Lc[:nxo, :nyo,:2]
@@ -292,7 +289,7 @@ def get_semseg(img, tile, decim, classifier_file,chan_dat_file, prob_thres, prob
    Lp3 = Lp3[:nxo, :nyo,:2]
    Lc3 = Lc3[:nxo, :nyo,:2]
    #np.shape(Lp1[:,:,0])
-    #lets do some integer array indexin
+   #lets do some integer array indexin
 
    p_stack = np.stack((Lp[:,:,0].copy(),Lp1[:,:,0].copy(),Lp2[:,:,0].copy(),Lp3[:,:,0].copy()))
    p1_stack = np.stack((Lp[:,:,1].copy(),Lp1[:,:,1].copy(),Lp2[:,:,1].copy(),Lp3[:,:,1].copy()))
@@ -310,6 +307,7 @@ def get_semseg(img, tile, decim, classifier_file,chan_dat_file, prob_thres, prob
 
    #image Lk contains the index from the sliding window
    Lk_k = p1_stack[index,bb,aa]
+   
    #np.max(p_stack, axis=0)
    #np.array_equal(Lp_f,np.max(p_stack, axis=0))
    #plt.imshow(Lp);plt.colorbar()
@@ -319,16 +317,30 @@ def get_semseg(img, tile, decim, classifier_file,chan_dat_file, prob_thres, prob
    Lcorig[Lp_f < prob_thres] = np.nan
    #plt.imshow(Lcorig);plt.colorbar()
 
-   '''
-   TODO: Add sliding window and to determine more satitstical properties of ice classifications
-   
-   '''
+
 
    chan_dat = loadmat(chan_dat_file)['chan_mask']
    #plt.imshow(chan_dat);plt.colorbar()
    LcChan = Lcorig.copy()
    LcChan[chan_dat ==0 ] = np.nan
-   #plt.imshow(img);plt.imshow(Lcorig, alpha=0.5);plt.colorbar();plt.show()
+   
+   Lk_chan = Lk_k.copy()
+   Lk_chan[chan_dat ==0 ] = np.nan
+
+   '''
+   TODO: Add sliding window and to determine more satitstical properties of ice classifications
+   
+   '''   
+   
+   for a in np.nditer(allones)[0:1]:
+      grid_pos = np.unravel_index(43, (ind[0],ind[1]))
+      
+      
+      t,b,l,r = get_win_pixel_coords(grid_pos,(int(tile/1),int(tile/1)), (int(tile/2),int(tile/2)))
+      slic_img = img[t:b, l:r,:]
+   
+   
+   #plt.imshow(img);plt.imshow(LcChan, alpha=0.5);plt.colorbar();plt.show()
 
 
    #np.shape(imgr)
