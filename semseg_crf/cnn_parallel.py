@@ -222,8 +222,8 @@ def get_semseg(img, tile, decim, classifier_file,chan_dat_file, prob_thres, prob
    print("processing took: " + str(elapsed/60) + ' minutes')
    
    
-   for i in range(len(Z)):
-      w1.append(getCP(Z[i], graph))
+#   for i in range(len(Z)):
+#      w1.append(getCP(Z[i], graph))
 
     ##C=most likely, P=prob, PP=all probs
    C, P = zip(*w1)

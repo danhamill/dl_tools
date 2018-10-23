@@ -24,6 +24,7 @@ from skimage.util import img_as_float
 from skimage.segmentation import slic
 from imageio import imread
 from sklearn.metrics import confusion_matrix, precision_recall_fscore_support
+import swifter
 
 #====================================================================
 
@@ -213,9 +214,9 @@ def img_coords(a,tile,ind):
     return t,b,l,r
 
 def slic_infer(i):
-    date_str = i.index.strftime('%y%m%d%H%M')[0]
-    dat_path = '/media/daniel/My Passport/PendOriellePhotos/ice_class2/rlc_analysis2/rlc1' +date_str +'_test_96.mat'
-    jpg_path = '/media/daniel/My Passport/PendOriellePhotos/RileyCreek' + os.sep + str(i.index.year[0])+os.sep + 'no_ice/rlc1' + date_str + '.jpg'
+    date_str = i['index'][0].strftime('%y%m%d%H%M')
+    dat_path = r"C:\workspace\git_clones\dl_tools\RileyCreek_0001\rlc1" +date_str +'_test_96.mat'
+    jpg_path = r"D:\PendOriellePhotos\RileyCreek" + os.sep + str(i['index'][0].year)+os.sep + 'no_ice\\rlc1' + date_str + '.jpg'
     img = img_as_float(imread(jpg_path))
     dat = loadmat(dat_path)
     c = dat['class'].astype('float')
@@ -252,14 +253,16 @@ def slic_infer(i):
             pad_c[t:b, l:r] = 4
         pad_c = pad_c[:nxo,:nyo]
     pad_c[np.isnan(chan_mask)] = np.nan
-    #dat.update({'river_class':pad_c})
-    #savemat(dat_path, dat, do_compression=True)
-    print('[i] Changed '+str(count) + ' of ' + str(len(windows)) + ' windows for ' +str(i.index[0])  )
+    
+    
+    dat.update({'river_class':pad_c})
+    savemat(dat_path, dat, do_compression=True)
+    #print('[i] Changed '+str(count) + ' of ' + str(len(windows)) + ' windows for ' +str(i.index[0])  )
     del slic_i, slic_img, img, dat, pad_img, pad_c, a, t,b,l,r,c,p,idx,chan_mask
     if len(windows) == count:
-        return 1
+        return "fixed"
     else:
-        return 0
+        return ""
 
 
 #====================================================================
@@ -305,6 +308,10 @@ def main():
 
     print('[i] Peforming SLIC inference...')
     fixes = 0
+    
+    mis_class['status'] = mis_class[['index'], ['true'], ['pred']].swifter.apply(slic_infer)
+    
+    
     for i in range(len(mis_class)):
         row = mis_class.iloc[i:i+1,]
         a = slic_infer(row)
